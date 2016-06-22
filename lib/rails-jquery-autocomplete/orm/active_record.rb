@@ -4,7 +4,7 @@ module RailsJQueryAutocomplete
       def active_record_get_autocomplete_order(method, options, model=nil)
         order = options[:order]
 
-        table_prefix = model ? "#{model.table_name}." : ""
+        table_prefix = model ? "#{model.table_name}." : ''
         if sqlite?
           order || "LOWER(#{method}) ASC"
         else
@@ -53,15 +53,15 @@ module RailsJQueryAutocomplete
         like_clause = (postgres?(model) && !is_case_sensitive_search ? 'ILIKE' : 'LIKE')
         column_transform = is_case_sensitive_search ? '' : 'LOWER'
         term = "#{(is_full_search ? '%' : '')}#{term.gsub(/([_%\\])/, '\\\\\1')}%"
-        word_start = options[:word_start]
+        deep_search = options[:deep_search]
         preposition = "#{column_transform}(#{table_name}.#{method}) #{like_clause} ?"
 
         if options[:hstore]
           ["#{column_transform}(#{table_name}.#{method} -> '#{options[:hstore][:key]}') LIKE #{column_transform}(?)", term]
         elsif sqlite?
           ["#{column_transform}(#{method}) #{like_clause} #{column_transform}(?)", term]
-        elsif word_start && !is_full_search
-          [preposition + ' OR (' + preposition + ')', term.downcase, "% #{term.downcase}"]
+        elsif deep_search && !is_full_search
+          [preposition, "% #{term.downcase}"]
         else
           [preposition ,term.downcase]
         end
