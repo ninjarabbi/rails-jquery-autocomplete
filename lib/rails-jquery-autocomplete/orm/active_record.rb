@@ -27,8 +27,7 @@ module RailsJQueryAutocomplete
         scopes.each { |scope| items = items.send(scope) } unless scopes.empty?
 
         items = items.select(get_autocomplete_select_clause(model, method, options)) unless options[:full_model]
-        items = items.where(get_autocomplete_where_clause(model, term, method, options)).
-            limit(limit).order(order)
+        items = items.where(get_autocomplete_where_clause(model, term, method, options)).limit(limit).order(order)
         items = items.where(where) unless where.blank?
 
         items
@@ -55,14 +54,16 @@ module RailsJQueryAutocomplete
         column_transform = is_case_sensitive_search ? '' : 'LOWER'
         term = "#{(is_full_search ? '%' : '')}#{term.gsub(/([_%\\])/, '\\\\\1')}%"
         word_start = options[:word_start]
+        preposition = "#{column_transform}(#{table_name}.#{method}) #{like_clause} ?"
+
         if options[:hstore]
           ["#{column_transform}(#{table_name}.#{method} -> '#{options[:hstore][:key]}') LIKE #{column_transform}(?)", term]
         elsif sqlite?
           ["#{column_transform}(#{method}) #{like_clause} #{column_transform}(?)", term]
-        elsif is_full_search
-          ["#{column_transform}(#{table_name}.#{method}) #{like_clause} ?", "%#{term.downcase}%"]
+        elsif word_start && !is_full_search
+          [preposition + ' OR (' + preposition + ')', term.downcase, "% #{term.downcase}"]
         else
-          ["(#{column_transform}(#{table_name}.#{method}) #{like_clause} ?) #{(word_start ? "OR (#{column_transform}(#{table_name}.#{method}) #{like_clause} ?)" : '')}", "#{term.downcase}%", "% #{term.downcase}%"]
+          [preposition ,term.downcase]
         end
       end
 
