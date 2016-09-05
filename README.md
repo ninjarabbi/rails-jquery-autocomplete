@@ -55,9 +55,9 @@ Run the generator
 
     rails generate autocomplete:install
 
-And include autocomplete-rails.js on your layouts
+And include autocomplete-rails-compressed.js on your layouts
 
-    javascript_include_tag "autocomplete-rails.js"
+    javascript_include_tag "autocomplete-rails-compressed.js"
 
 #### Upgrading from older versions
 
